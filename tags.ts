@@ -7,4 +7,4 @@ for await (const dirEntry of Deno.readDir("./input")) {
     const img = await Deno.readFile("./input/" + dirEntry.name);
     tags.push(`<img alt"${dirEntry.name.replace(".jpg", "")}" src="data:image/jpg;base64,${fromUint8Array(img)}">`);
 }
-Deno.writeTextFileSync("tags.txt", tags.join("\n"));
+Deno.writeTextFileSync("tags.html", tags.join("\n"));
