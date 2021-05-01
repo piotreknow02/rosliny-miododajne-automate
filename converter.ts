@@ -1,45 +1,42 @@
-import { readCSVObjects } from "https://deno.land/x/csv/mod.ts";
+import {parse as parseCsv} from 'https://deno.land/std@0.82.0/encoding/csv.ts';
 
-const options = {
-    columnSeparator: ",",
-    lineSeparator: "\n",
-    quote: "\"",
-  };
+const options = { skipFirstRow: true };
 
-const CountriesCSV = await readCSVObjects(await Deno.open("./data/kraje.csv"), options);
-const CategoriesCSV = await readCSVObjects(await Deno.open("./data/kategorie.csv"), options);
-const PlantsCSV = await readCSVObjects(await Deno.open("./data/rosliny.csv"), options);
-const PlantCountriesCSV = await readCSVObjects(await Deno.open("./data/kraje_roslin.csv"), options);
+const CountriesCSV: any = await parseCsv(await Deno.readTextFile("./data/kraje.csv"), options);
+const CategoriesCSV: any = await parseCsv(await Deno.readTextFile("./data/kategorie.csv"), options);
+const PlantsCSV: any = await parseCsv((await Deno.readTextFile("./data/rosliny.csv")), options);
+const PlantCountriesCSV: any = await parseCsv(await Deno.readTextFile("./data/kraje_roslin.csv"), options);
 
 let CategoriesLine = "INSERT INTO kategorie(Nazwa) VALUES \n";
-for await (const c of CategoriesCSV) {
-    CategoriesLine += `(${c.Nazwa}),`;
+for (const ca of CategoriesCSV) {
+    CategoriesLine += `(${ca.Nazwa}),\n`;
 }
 CategoriesLine = removeComma(CategoriesLine);
 
 let CountriesLine = "INSERT INTO kraje(Kraj) VALUES \n";
-for await (const c of CountriesCSV) {
-    CountriesLine += `(${c.Kraj}),`;
+for (const cu of CountriesCSV) {
+    CountriesLine += `(${cu.Kraj}),\n`;
 }
 CountriesLine = removeComma(CountriesLine);
 
 let PlantsLine = "INSERT INTO rosliny(Nazwa, Nazwa_lacinska, Id_rodzaju_rosliny, Wydajnosc_miodowa, Wydajnosc_pylkowa, Zdjecie) VALUES \n";
-for await (const c of PlantsCSV) {
-    PlantsLine += `(${c.Nazwa}, ${c.Nazwa_lacinska}, ${c.Id_rodzaju_rosliny}, ${c.Wydajnosc_miodowa}, ${c.Wydajnosc_pylkowa}, ${c.Zdjecie}),`;
+for (const p of PlantsCSV) {
+    PlantsLine += `(${p.Nazwa}, ${p.Nazwa_lacinska}, ${p.Id_rodzaju_rosliny}, ${p.Wydajnosc_miodowa}, ${p.Wydajnosc_pylkowa}, ${p.Zdjecie}),\n`;
 }
 PlantsLine = removeComma(PlantsLine);
 
 let PlantCountriesLine = "INSERT INTO kraje_roslin(Id_kraju, Id_rosliny) VALUES \n";
-for await (const c of PlantCountriesCSV) {
-    PlantCountriesLine += `(${c.Id_kraju, c.Id_rosliny}),\n`;
+for (const pc of PlantCountriesCSV) {
+    PlantCountriesLine += `(${pc.Id_kraju}, ${pc.Id_rosliny}),\n`;
 }
 PlantCountriesLine = removeComma(PlantCountriesLine);
 
-Deno.writeTextFileSync("./rosliny-insert.sql", "USE RoslinyMiododajne;\n" + CategoriesLine + CountriesLine + PlantCountriesLine + PlantCountriesLine);
+Deno.writeTextFileSync("./rosliny-insert.sql", `USE RoslinyMiododajne;\n\n  ${CategoriesLine}\n\n ${CountriesLine}\n\n ${PlantsLine}\n\n ${PlantCountriesLine}`);
  
 function removeComma(str: string)
 {
-    const r = str.split("").reverse().join("");
-    r.replace(",", ";");
-    return r.split("").reverse().join("");
+    let r = str.split("").reverse().join("");
+    r = r.replace(",", ";");
+    r = r.split("").reverse().join("");
+    return r;
 }
