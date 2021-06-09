@@ -1,6 +1,11 @@
 import {parse as parseCsv} from 'https://deno.land/std@0.82.0/encoding/csv.ts';
 
-const options = { skipFirstRow: true };
+const options = {
+    skipFirstRow: true,
+    columnSeparator: ";",
+    lineSeparator: "\n",
+    quote: "$"
+};
 
 const CountriesCSV: any = await parseCsv(await Deno.readTextFile("./data/kraje.csv"), options);
 const CategoriesCSV: any = await parseCsv(await Deno.readTextFile("./data/kategorie.csv"), options);
